@@ -1167,6 +1167,34 @@ def admin_audit_csv():
     audit_log('EXPORT_AUDIT_LOG', user, 'system', None, f'Exported audit log CSV; rows={len(rows)}')
     return send_file(io.BytesIO(out.getvalue().encode('utf-8-sig')),mimetype='text/csv',as_attachment=True,download_name='audit_log.csv')
 
+@app.route('/admin/maintenance', methods=['GET'])
+def admin_maintenance():
+    """Render the administrator maintenance page.
+
+    The Windows EXE update workflow is not available on Render; this route
+    keeps the admin navigation from returning a 404 and explains the runtime.
+    """
+    user = require_user()
+    if not user or user['role'] != 'admin':
+        return redirect(url_for('login'))
+
+    is_render = bool(os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'))
+    return render_template(
+        'admin_maintenance.html',
+        user=user,
+        app_version=os.environ.get('APP_VERSION', '24.6.2'),
+        data_dir=BASE_DIR,
+        restore_pending=False,
+        success=None,
+        error=(
+            'Windows EXE update and local restore actions are not supported on Render. '
+            'Use your Render deployment and Turso database tools for hosted maintenance.'
+            if is_render else None
+        ),
+        update_validated=None,
+    )
+
+
 @app.route('/admin')
 def admin():
     user=require_user()
