@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Digital Quiz System | Eduardo Gorre Memorial Integrated School</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="center">
+  <div class="card auth login-card">
+    <!-- SCHOOL LOGO -->
+    <div class="school-logo">
+      <img src="{{ url_for('static', filename='logo.png') }}"
+           alt="Eduardo Gorre Memorial Integrated School Logo"
+           class="logo">
+    </div>
+
+    <!-- SCHOOL NAME -->
+    <div class="school-header">
+      <h1>EDUARDO GORRE MEMORIAL</h1>
+      <h2>INTEGRATED SCHOOL</h2>
+      <p class="system-title">Digital Quiz System</p>
+    </div>
+
+    <!-- MESSAGE -->
+    {% if msg %}
+    <div class="alert">{{ msg }}</div>
+    {% endif %}
+
+    <!-- LOGIN FORM -->
+    <form method="post" class="login-form" id="loginForm" autocomplete="on">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text"
+               placeholder="Enter your username"
+               autocomplete="username" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password"
+               placeholder="Enter your password"
+               autocomplete="current-password" required>
+      </div>
+
+      <button type="submit" class="login-button" id="loginButton">🔐 Login</button>
+    </form>
+
+    <div class="register-section">
+      <p>Student accounts are created by the school administrator. Please contact your teacher if you need login credentials.</p>
+    </div>
+
+    <!-- PRIVACY NOTICE -->
+    <div class="privacy-box">
+      <h3>🔒 Data Privacy Notice</h3>
+      <p>
+        By using this application, you acknowledge that the information you provide
+        will be used only for educational and assessment purposes.
+      </p>
+      <p>
+        Your information will be kept confidential and accessed only by authorized
+        personnel. Personal information will not be disclosed to third parties except
+        when required or permitted by applicable policies or law.
+      </p>
+    </div>
+
+    <div class="login-help">
+      <strong>📱 Having trouble logging in?</strong>
+      <p>Make sure you are connected to the same school Wi-Fi/router as the quiz server and open the LAN address provided by the teacher. If the page keeps returning to Login, try the browser's Private/Incognito window or clear the saved site data for this LAN address.</p>
+    </div>
+
+    <div class="login-footer">
+      <small>
+        Eduardo Gorre Memorial Integrated School<br>
+        Digital Quiz System
+      </small>
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  const form=document.getElementById('loginForm');
+  const btn=document.getElementById('loginButton');
+  if(form && btn){
+    form.addEventListener('submit',function(){
+      if(form.dataset.submitted==='1') return;
+      form.dataset.submitted='1';
+      btn.disabled=true;
+      btn.textContent='⏳ Signing in…';
+    });
+  }
+})();
+</script>
+</body>
+</html>

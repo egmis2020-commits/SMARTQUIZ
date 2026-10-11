@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/static/style.css"><title>Audit Log</title></head>
+<body><header class="app-header"><b>🛡️ Administrator Dashboard</b><nav class="admin-top-nav"><a class="{% if request.path == '/admin' %}active{% endif %}" href="/admin">Dashboard</a><a class="{% if request.path.startswith('/admin/teachers') %}active{% endif %}" href="/admin/teachers">👩‍🏫 Teachers</a><a class="{% if request.path.startswith('/admin/students') %}active{% endif %}" href="/admin/students">👥 Students</a><a class="{% if request.path.startswith('/admin/results') or request.path.startswith('/admin/item-analysis') or request.path.startswith('/admin/analytics') %}active{% endif %}" href="/admin/results">📊 Results</a><a class="{% if request.path.startswith('/admin/audit-log') %}active{% endif %}" href="/admin/audit-log">🧾 Audit Log</a><a class="{% if request.path.startswith('/admin/maintenance') %}active{% endif %}" href="/admin/maintenance">🛠️ Maintenance</a><a href="/logout">Logout</a></nav></header>
+<main class="container">
+<section class="card">
+  <div class="page-title"><div><h1>🧾 Audit Log</h1><p class="muted">Security and activity history for important actions performed in the LMS.</p></div><a href="/admin"><button type="button" class="secondary">← Dashboard</button></a></div>
+  <div class="audit-toolbar">
+    <form method="get" action="/admin/audit-log" class="audit-filter-form">
+      <label>🔎 Search<input type="search" name="search" value="{{search}}" placeholder="Username, action details, target..."></label>
+      <label>Action<select name="action"><option value="">All Actions</option>{% for a in actions %}<option value="{{a}}" {% if selected_action==a %}selected{% endif %}>{{a}}</option>{% endfor %}</select></label>
+      <label>Role<select name="role"><option value="">All Roles</option><option value="admin" {% if selected_role=='admin' %}selected{% endif %}>Admin</option><option value="teacher" {% if selected_role=='teacher' %}selected{% endif %}>Teacher</option><option value="student" {% if selected_role=='student' %}selected{% endif %}>Student</option></select></label>
+      <label>Rows<select name="limit"><option value="100" {% if limit==100 %}selected{% endif %}>100</option><option value="200" {% if limit==200 %}selected{% endif %}>200</option><option value="500" {% if limit==500 %}selected{% endif %}>500</option></select></label>
+      <button type="submit">Filter</button>
+      <a href="/admin/audit-log"><button type="button" class="secondary">Clear</button></a>
+    </form>
+    <div class="audit-actions"><a href="/admin/audit-log.csv?search={{search|urlencode}}&action={{selected_action|urlencode}}&role={{selected_role|urlencode}}"><button type="button" class="secondary">⬇ Download CSV</button></a></div>
+  </div>
+</section>
+<section class="card">
+  <div class="audit-summary"><b>{{rows|length}}</b> events shown <span class="muted">Newest first</span></div>
+  <div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Date/Time</th><th>Actor</th><th>Role</th><th>Action</th><th>Target</th><th>Details</th><th>IP</th></tr></thead>
+  <tbody>{% for r in rows %}<tr><td>{{r['created_at']}}</td><td><b>{{r['actor_username'] or 'System / Guest'}}</b></td><td>{{r['actor_role'] or '—'}}</td><td><span class="audit-action">{{r['action']}}</span></td><td>{{r['target_type'] or '—'}}{% if r['target_id'] %} #{{r['target_id']}}{% endif %}</td><td>{{r['details'] or '—'}}</td><td>{{r['ip_address'] or '—'}}</td></tr>{% else %}<tr><td colspan="7" class="muted">No audit events match your filters.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+</main></body></html>

@@ -1,0 +1,2 @@
+# Turso remote driver used by the hosted database adapter
+turso_serverless

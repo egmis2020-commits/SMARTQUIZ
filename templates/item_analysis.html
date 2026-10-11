@@ -1,0 +1,50 @@
+<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/static/style.css"><title>Item Analysis</title></head>
+<body>
+<header><b>📈 Item Analysis</b><nav>{% if is_teacher %}<a href="/teacher">Dashboard</a><a href="/teacher/results">📊 Results</a><a href="/teacher/security">🔐 Security</a>{% else %}<a href="/admin">Dashboard</a><a href="/admin/results">📊 Results</a>{% endif %}<a href="/logout">Logout</a></nav></header>
+<main class="container">
+<section class="card">
+  <div class="results-heading"><div><h1>Item Analysis</h1><p class="muted"><b>{{quiz['title']}}</b> · Grade {{quiz['grade_level']}} · {{items|length}} items</p></div><span class="live">CLASSROOM DATA</span></div>
+  <div class="analysis-toolbar">
+    <a href="/admin/item-analysis/{{quiz['id']}}.csv?include_hidden={{1 if include_hidden else 0}}"><button type="button">⬇ Download Item Analysis CSV</button></a>
+    <label class="checkline"><input type="checkbox" id="showHidden" {% if include_hidden %}checked{% endif %}> Include hidden attempts</label>
+    {% if is_teacher %}<a href="/teacher/results">← Back to Results</a>{% else %}<a href="/admin/results">← Back to Results</a>{% endif %}
+  </div>
+  <div class="analysis-summary">
+    <div><span>Attempts Included</span><b>{{items[0]['total'] if items else 0}}</b></div>
+    <div><span>Items</span><b>{{items|length}}</b></div>
+    <div><span>Method</span><b>Classical</b></div>
+  </div>
+  <div class="alert success" style="margin-top:12px">Difficulty = percentage of valid responses answered correctly. Discrimination compares the upper and lower 27% of attempts by overall percentage.</div>
+  <div class="tablewrap">
+    <table class="analysis-table">
+      <thead><tr><th>Item</th><th>Question</th><th>Key</th><th>Responses</th><th>Correct</th><th>Incorrect</th><th>Difficulty</th><th>Upper</th><th>Lower</th><th>Discrimination</th><th>Interpretation</th></tr></thead>
+      <tbody>
+      {% for x in items %}
+      <tr>
+        <td><b>{{x['number']}}</b></td>
+        <td class="analysis-question">{{x['question']}}</td>
+        <td><b>{{x['answer']}}</b></td>
+        <td>{{x['total']}}</td><td>{{x['correct']}}</td><td>{{x['incorrect']}}</td>
+        <td><b>{{'%.1f'|format(x['difficulty'])}}%</b><br><small>{{x['difficulty_label']}}</small></td>
+        <td>{{x['upper_correct']}}</td><td>{{x['lower_correct']}}</td>
+        <td><b>{{'%.1f'|format(x['discrimination'])}}%</b><br><small>{{x['discrimination_label']}}</small></td>
+        <td><span class="analysis-badge">{{x['difficulty_label']}}</span><br><small>{{x['discrimination_label']}}</small></td>
+      </tr>
+      {% else %}<tr><td colspan="11">No completed attempts are available for this quiz yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="card">
+<h2>How to Read the Analysis</h2>
+<ul>
+<li><b>Difficulty %</b>: higher values mean more learners answered the item correctly.</li>
+<li><b>Discrimination %</b>: positive values indicate that higher-performing learners answered the item correctly more often than lower-performing learners.</li>
+<li><b>Upper / Lower</b>: number of correct responses in the upper and lower 27% groups.</li>
+<li><b>Needs Review</b>: use the item for review rather than automatically deleting it. Check wording, content alignment, answer key, and distractors before revising.</li>
+</ul>
+</section>
+</main>
+<script>document.getElementById('showHidden').addEventListener('change',e=>{location.href='/admin/item-analysis/{{quiz["id"]}}?include_hidden='+(e.target.checked?'1':'0')});</script>
+</body></html>

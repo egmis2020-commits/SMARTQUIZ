@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/static/style.css"><title>System Maintenance - EGMIS Digital Quiz</title>
+<style>
+.maintenance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.maintenance-panel{border:1px solid var(--border-color,#ddd);border-radius:14px;padding:20px}.maintenance-panel h2{margin-top:0}.maintenance-panel p{line-height:1.55}.notice{padding:12px 14px;border-radius:10px;margin:12px 0}.notice.success{background:#e7f7ed;color:#14532d}.notice.error{background:#fee2e2;color:#7f1d1d}.notice.warning{background:#fff7d6;color:#713f12}.maintenance-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.maintenance-panel input[type=file]{max-width:100%;margin:12px 0}.small{font-size:.9em}.path{overflow-wrap:anywhere;font-family:monospace}.update-step{border-top:1px solid var(--border-color,#ddd);padding-top:14px;margin-top:14px}.update-meta{overflow-wrap:anywhere;font-family:monospace;font-size:.85em}.update-notes{white-space:pre-wrap}.maintenance-panel button{margin-top:6px}
+</style>
+</head>
+<body>
+<header class="app-header"><b>🛡️ Administrator Dashboard</b><nav class="admin-top-nav"><a class="{% if request.path == '/admin' %}active{% endif %}" href="/admin">Dashboard</a><a class="{% if request.path.startswith('/admin/teachers') %}active{% endif %}" href="/admin/teachers">👩‍🏫 Teachers</a><a class="{% if request.path.startswith('/admin/students') %}active{% endif %}" href="/admin/students">👥 Students</a><a class="{% if request.path.startswith('/admin/results') or request.path.startswith('/admin/item-analysis') or request.path.startswith('/admin/analytics') %}active{% endif %}" href="/admin/results">📊 Results</a><a class="{% if request.path.startswith('/admin/audit-log') %}active{% endif %}" href="/admin/audit-log">🧾 Audit Log</a><a class="{% if request.path.startswith('/admin/maintenance') %}active{% endif %}" href="/admin/maintenance">🛠️ Maintenance</a><a href="/logout">Logout</a></nav></header>
+<main class="container">
+<section class="card"><h1>Backup, Restore & Update</h1><p class="small">Application version: <b>{{ app_version or "24.6.2" }}</b></p><p>Use these tools to protect student accounts, quizzes, attempts/results, analytics, uploaded question pictures and system settings. Keep backup files private because they contain student information.</p>
+{% if success %}<div class="notice success">{{ success }}</div>{% endif %}
+{% if error %}<div class="notice error">{{ error }}</div>{% endif %}
+{% if restore_pending %}<div class="notice warning"><b>Restore is waiting to be applied.</b> Stop the server, then launch <code>EGMIS_Digital_Quiz.exe</code> again. The launcher will save a safety backup before restoring. Do not stage another restore until this one is applied or removed.</div>{% endif %}
+<p class="small">Live data folder: <span class="path">{{ data_dir }}</span></p>
+</section>
+<div class="maintenance-grid">
+<section class="card maintenance-panel"><h2>📦 1. Backup Data</h2><p>Create a ZIP archive containing a consistent SQLite database snapshot, DuckDB analytics (when available), uploaded images and static assets, and the public URL marker if present.</p><p>Save the downloaded ZIP to a USB drive or another separate location.</p><form method="post" action="/admin/maintenance/backup"><button type="submit">Create & Download Backup</button></form></section>
+<section class="card maintenance-panel"><h2>♻️ 2. Restore Data</h2><p>Choose a backup ZIP created by this system. It will be validated and staged; the live database is not replaced while students may still be using the server.</p><form method="post" action="/admin/maintenance/restore" enctype="multipart/form-data" onsubmit="return confirm('Stage this backup for restoration? The next EXE startup will replace the current data with the selected backup. A safety backup will be made first.');"><input type="file" name="backup_file" accept=".zip,application/zip" required><div><button class="danger" type="submit" {% if restore_pending %}disabled{% endif %}>Validate & Stage Restore</button></div></form><p class="small">After staging: stop the server, then start the EXE again to apply the restore. Only restore a backup you trust.</p></section>
+<section class="card maintenance-panel"><h2>🔄 3. Update Application</h2>
+<p>Upload the new Windows application file directly here. No update website, URL, or manifest is needed. The app checks the version, file size, Windows executable headers, and calculates a SHA-256 fingerprint before allowing installation.</p>
+<form method="post" action="/admin/maintenance/update/upload" enctype="multipart/form-data" onsubmit="return confirm('Upload and validate this EGMIS EXE? Any previously staged update will be discarded.');">
+<label for="update_file"><b>New application file (.exe)</b></label><input id="update_file" type="file" name="update_file" accept=".exe,application/vnd.microsoft.portable-executable" required>
+<label for="update_version"><b>Version inside the uploaded file</b></label><input id="update_version" name="update_version" type="text" inputmode="decimal" pattern="[0-9]+(\.[0-9]+){1,3}" placeholder="24.6.3" required>
+<label for="update_notes"><b>Release notes (optional)</b></label><textarea id="update_notes" name="update_notes" rows="3" maxlength="2000" placeholder="Describe what this update fixes or adds" style="width:100%;box-sizing:border-box;margin:8px 0"></textarea>
+<button type="submit">1. Upload & Validate Update</button></form>
+{% if update_validated %}<div class="update-step"><h3>Validated update: Version {{ update_validated.version }}</h3>
+{% if update_validated.release_notes %}<p class="update-notes">{{ update_validated.release_notes }}</p>{% endif %}
+<p class="small">File: {{ update_validated.source_filename or 'EGMIS_Digital_Quiz_NEW.exe' }}<br>Size: {{ '{:,}'.format(update_validated.size_bytes) }} bytes<br>SHA-256: <span class="update-meta">{{ update_validated.sha256 }}</span></p>
+<form method="post" action="/admin/maintenance/update/install" onsubmit="return confirm('Install version {{ update_validated.version }} now? The quiz server will stop and restart. Do not do this during an active quiz. A backup of the current EXE will be created first.');"><button type="submit">2. Install Update & Restart</button></form></div>{% endif %}
+<p class="small">Only upload an EXE obtained from a trusted source. The app verifies file structure and detects changes to the staged file, but the computed SHA-256 fingerprint does not independently prove who created the EXE. Make a data backup first. In-app installation is available in the packaged Windows EXE build; the LAN quiz itself remains offline-capable.</p>
+</section>
+</div>
+<section class="card"><h2>Safety reminders</h2><ul><li>Do not restore or update while a class is actively taking a quiz.</li><li>Backups include private student records and results; do not post them publicly.</li><li>Restoring replaces the current database and images with the contents of the selected backup.</li><li>Keep the teacher computer powered on and do not close the server during active quizzes.</li></ul><a href="/admin">← Back to Administrator Dashboard</a></section>
+</main>
+</body></html>

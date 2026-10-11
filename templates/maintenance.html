@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maintenance | EGMIS Digital Quiz</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .maintenance-page { max-width: 680px; margin: 10vh auto; padding: 28px; text-align: center; }
+    .maintenance-page p { line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <main class="container maintenance-page card">
+    <h1>System Maintenance</h1>
+    <p>The EGMIS Digital Quiz system is currently being maintained or updated.</p>
+    <p>Please try again in a few minutes. Your patience is appreciated.</p>
+    <p><a href="{{ url_for('login') }}">Return to login</a></p>
+  </main>
+</body>
+</html>

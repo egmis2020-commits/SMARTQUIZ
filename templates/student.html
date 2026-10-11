@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark"><link rel="stylesheet" href="/static/style.css"><title>Student Dashboard</title></head><body><div class="offline-banner">🔒 LOCAL LAN / OFFLINE MODE · Internet is not required</div><header><b>🎓 Student Dashboard</b><nav><a href="/student">🏠 Dashboard</a><a href="/progress">📈 Progress</a><a href="/history">📚 History</a><a href="/student/reviews">🔎 Review</a><a href="/logout">Logout</a></nav></header><main class="container"><div class="card"><h1>Welcome, {{user['username']}}!</h1><p>Grade {{user['grade_level']}} · Only quizzes assigned to your grade level are shown.</p></div><h2>📝 Available Quizzes</h2><div class="quizgrid">{% for q in quizzes %}<div class="card quizcard"><h3>{{q['title']}}</h3><p><span class="badge">Grade {{q['grade_level']}}</span> · {{q['n']}} questions · ⏱ {{q['duration_minutes']}} minutes</p><p class="muted">Attempts: {{q['attempts']}} / {{q['max_attempts']}}{% if q['attempts'] %} · Best: {{'%.1f'|format(q['best_score'])}}% · Average: {{'%.1f'|format(q['avg_score'])}}%{% endif %}</p>
+{% if q['availability']['state']=='scheduled' %}<p class="schedule-status scheduled">🕒 <b>Scheduled</b>{% if q['available_from_display'] %}<br>Opens {{q['available_from_display']}}{% endif %}</p><button disabled>Not Yet Available</button>
+{% elif q['availability']['state']=='closed' %}<p class="schedule-status closed">🔒 <b>Closed</b>{% if q['available_until_display'] %}<br>Closed {{q['available_until_display']}}{% endif %}</p><button disabled>Quiz Closed</button>
+{% elif q['attempts'] < q['max_attempts'] %}<p class="schedule-status available">🟢 <b>Available Now</b>{% if q['available_until_display'] %}<br>Until {{q['available_until_display']}}{% endif %}</p><a href="/quiz/{{q['id']}}"><button>Start Quiz →</button></a>
+{% else %}<button disabled>Attempts Used</button>{% endif %}{% if q['attempts'] and q['review_enabled'] %}<a href="/student/reviews"><button type="button" class="secondary">🔎 Review Quiz</button></a>{% endif %}</div>{% else %}<div class="card"><p>No quizzes are currently available for Grade {{user['grade_level']}}.</p></div>{% endfor %}</div></main><script>
+(function(){
+  // Heartbeat is optional and must never interfere with dashboard rendering.
+  async function studentHeartbeat(){
+    try{
+      if(!window.fetch) return;
+      await fetch('/api/heartbeat',{method:'POST',headers:{'Content-Type':'application/json'},keepalive:true,cache:'no-store'});
+    }catch(e){}
+  }
+  studentHeartbeat();
+  setInterval(studentHeartbeat,15000);
+  window.addEventListener('beforeunload',studentHeartbeat);
+})();
+</script></body></html>
